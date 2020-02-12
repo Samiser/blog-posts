@@ -81,7 +81,7 @@ datatobeencoded.ns.yourdomain.xyz
 
 This can actually be manually demonstrated using dig:
 
-![dig of iodine nameserver](/static/blog/images/encrypted-dns-tunneling/dig.png)
+![dig of iodine nameserver](images/encrypted-dns-tunneling/dig.png)
 
 Here you can see there was some data prepended to the DNS request (z456)
 and then the iodine server responded with some other data (tpi0dknro)
@@ -89,17 +89,17 @@ and then the iodine server responded with some other data (tpi0dknro)
 So now that I've configured DNS tunneling for my domain and I've confirmed that it works with dig,
 all I have to do is use the iodine client to connect to the tunnel:
 
-![tunnel working](/static/blog/images/encrypted-dns-tunneling/tunnel-working.png)
+![tunnel working](images/encrypted-dns-tunneling/tunnel-working.png)
 
 And now to confirm I have access to the server, I'll nmap the first two tunnel addresses:
 
-![nmap of tunnel](/static/blog/images/encrypted-dns-tunneling/nmap-of-tunnel.png)
+![nmap of tunnel](images/encrypted-dns-tunneling/nmap-of-tunnel.png)
 
 Nice, I've set up the tunnel and have access to the server from my laptop from an external network. 
 All I have to do now is connect to the tunnel from the target and I should be able to
 access it from my attacking machine/laptop through the tunnel.
 
-![kali connection failed](/static/blog/images/encrypted-dns-tunneling/kali-iodine-failed.png)
+![kali connection failed](images/encrypted-dns-tunneling/kali-iodine-failed.png)
 
 It failed to connect. This confused me for quite a long time, surely DNS traffic can't be blocked
 so how could my tunnel be being blocked? Well after looking into it I found that some firewalls
@@ -149,7 +149,7 @@ After ensuring it was running the first thing I tested was the simple dig DNS re
 shown previously in the article. Running tcpdump in the background and grepping for only TXT
 DNS queries, I first ran the command with normal DNS and then going through the local DNS stub:
 
-![tcpdump to check stub is working](/static/blog/images/encrypted-dns-tunneling/tcpdump.png)
+![tcpdump to check stub is working](images/encrypted-dns-tunneling/tcpdump.png)
 
 As can be seen in the above image, the first dig request was picked up but the second one wasn't.
 This indicated that the DNS stub was succesfully masking the DNS TCP data by encrypting it. All
@@ -175,7 +175,7 @@ It works by sending the DNS requests directly to the server without going throug
 It also seems that when it's in this mode it sends a lot more data per DNS request.
 Here's the speed test while using this mode:
 
-![raw mode speed](/static/blog/images/encrypted-dns-tunneling/raw-connection.png)
+![raw mode speed](images/encrypted-dns-tunneling/raw-connection.png)
 
 I got 36.4Mbits/s for bandwith which is relatively slow. It would be enough for an SSH connection
 and to transfer files that aren't too big so that's good enough for me.
@@ -184,13 +184,13 @@ However, as I mentioned earlier, this isn't a technique that could be used to en
 since it just sends it directly to the Iodine server. By adding -r to the command you can bypass
 raw mode and attempt the proper query mode:
 
-![query mode connection](/static/blog/images/encrypted-dns-tunneling/query-connection.png)
+![query mode connection](images/encrypted-dns-tunneling/query-connection.png)
 
 So now you can see Iodine trying to find the optimal size of data that could be appended to the DNS
 requests. It settles on 1186. Also after connecting a lot of errors were coming up... This didn't fill
 me with confidence. Here's the speed for connecting through my DNS resolver:
 
-![query mode speed](/static/blog/images/encrypted-dns-tunneling/query-speed.png)
+![query mode speed](images/encrypted-dns-tunneling/query-speed.png)
 
 327Kbits/s is really not ideal. it's barely usable. However I could still manage
 to get an SSH connection through the tunnel and it did stay open, so things still weren't looking too bad.
@@ -198,12 +198,12 @@ to get an SSH connection through the tunnel and it did stay open, so things stil
 Now it was time to establish the tunnel connection while encrypting all of the DNS requests using DNS over TLS
 with stubby:
 
-![DNS over TLS connection](/static/blog/images/encrypted-dns-tunneling/dns-tls-connection.png)
+![DNS over TLS connection](images/encrypted-dns-tunneling/dns-tls-connection.png)
 
 Not looking good. Iodine has determined it can only use a data fragment size of 238, far smaller than last time.
 There were also once again lots of errors while the connection was running. Time to test the speed:
 
-![DNS over TLS speed test](/static/blog/images/encrypted-dns-tunneling/dns-tls-speed.png)
+![DNS over TLS speed test](images/encrypted-dns-tunneling/dns-tls-speed.png)
 
 As you can see my initial attempt failed completely. The second attempt gave an impressively bad 33.3Kbits/s.
 At this point I couldn't even consistently ping through the tunnel and an SSH connection was impossible to establish.
@@ -215,12 +215,12 @@ a fair amount of time. Then it needs to be decoded at the other end and parsed b
 
 Out of curiosity I also tried using DNScrypt-proxy to see if the results were any different:
 
-![DNScrypt proxy connection](/static/blog/images/encrypted-dns-tunneling/dnscrypt-connection.png)
+![DNScrypt proxy connection](images/encrypted-dns-tunneling/dnscrypt-connection.png)
 
 Interestingly as you can see Iodine could use a fragment size of 1150, significantly higher than when
 using DNS over TLS with stubby. Now for the speed test:
 
-![DNScrypt proxy speed](/static/blog/images/encrypted-dns-tunneling/dnscrypt-speed.png)
+![DNScrypt proxy speed](images/encrypted-dns-tunneling/dnscrypt-speed.png)
 
 Well - once I could get it to connect - at 34.7Kbits/s it was in fact 1.4Kbits/s faster than DNS over TLS
 and this result was consistent over multiple tests. Even though the speed difference was tiny, I could
@@ -231,31 +231,31 @@ on the target network (hacklab) to the tunnel as well.
 First I needed to set up the encrypted DNS stub. Since dnscrypt-proxy allowed me to establish an
 SSH connection that is what I used on the kali machine:
 
-![Kali dnscrypt-proxy set up](/static/blog/images/encrypted-dns-tunneling/kali-dns-proxy.png)
+![Kali dnscrypt-proxy set up](images/encrypted-dns-tunneling/kali-dns-proxy.png)
 
 And then - after configuring resolv.conf to use the stub - tested that it works with dig:
 
-![Kali dig test](/static/blog/images/encrypted-dns-tunneling/kali-dig.png)
+![Kali dig test](images/encrypted-dns-tunneling/kali-dig.png)
 
 Iodine was already installed on kali by default so I just needed to connect to the tunnel:
 
-![Kali iodine connection](/static/blog/images/encrypted-dns-tunneling/kali-iodine.png)
+![Kali iodine connection](images/encrypted-dns-tunneling/kali-iodine.png)
 
 It works! The firewall has been bypassed. Iodine decided that 622 was the max fragment size
 which works fine. Now from my laptop I ssh'd into the proxy server then from there I ssh'd
 into the Kali machine. I then created and wrote to a file in the root directory:
 
-![Kali file creation](/static/blog/images/encrypted-dns-tunneling/file-creation-kali.png)
+![Kali file creation](images/encrypted-dns-tunneling/file-creation-kali.png)
 
 And then from the kali machine itself I made sure the file was present:
 
-![Kali file check](/static/blog/images/encrypted-dns-tunneling/kali-file.png)
+![Kali file check](images/encrypted-dns-tunneling/kali-file.png)
 
 Everything is working! I really can't describe how chuffed I was at this point.
 Finally I went backwards through the tunnel and ssh'd into my laptop from the kali
 machine just to prove that it's possible:
 
-![SSH back to laptop](/static/blog/images/encrypted-dns-tunneling/kali-ssh.png)
+![SSH back to laptop](images/encrypted-dns-tunneling/kali-ssh.png)
 
 It works. Nice.
 

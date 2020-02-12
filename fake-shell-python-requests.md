@@ -28,32 +28,32 @@ that I discovered.
 The vulnerable entry point was a profile picture changing
 form.
 
-![Upload form](/static/blog/images/fake-shell-with-python-requests/upload.png)
+![Upload form](images/fake-shell-with-python-requests/upload.png)
 
 It was meant to only accept JPG or PNG files. Uploading
 a file of another type was caught by a filter.
 
-![Invalid file type](/static/blog/images/fake-shell-with-python-requests/invalidfiletype.png)
+![Invalid file type](images/fake-shell-with-python-requests/invalidfiletype.png)
 
 I managed to bypass this filter by editing the MIME type
 with burp proxy. I just had a "test.php" file containing
 some php to echo 1+1.
 
-![Upload intercepted by burp](/static/blog/images/fake-shell-with-python-requests/burp.png)
+![Upload intercepted by burp](images/fake-shell-with-python-requests/burp.png)
 
 Once the upload post request was intercepted all I had to do
 was change the MIME type from application/x-php to image/jpeg.
 
-![Modified MIME type](/static/blog/images/fake-shell-with-python-requests/burpmodifytype.png)
+![Modified MIME type](images/fake-shell-with-python-requests/burpmodifytype.png)
 
 And it was successfully uploaded and stored on the server.
 
-![File successfully uploaded](/static/blog/images/fake-shell-with-python-requests/uploaded.png)
+![File successfully uploaded](images/fake-shell-with-python-requests/uploaded.png)
 
 Now I could access the file directly and the code would
 be executed.
 
-![Code execution achieved](/static/blog/images/fake-shell-with-python-requests/codeexec.png)
+![Code execution achieved](images/fake-shell-with-python-requests/codeexec.png)
 
 Another slightly more interesting method was using
 a local file inclusion vulnerability I had found
@@ -64,7 +64,7 @@ image and nothing would happen. However, when included
 with LFI, it would actually execute the code and display
 the output in between the header and the footer.
 
-![LFI code execution](/static/blog/images/fake-shell-with-python-requests/testjpginclude.png)
+![LFI code execution](images/fake-shell-with-python-requests/testjpginclude.png)
 
 So I had two different methods of uploading code to
 the server, but now I actually wanted to use the
@@ -110,7 +110,7 @@ post and get requests using the session object.
 First, a post login request was captured with burp proxy
 in order to see what parameters needed to be included.
 
-![Login POST request](/static/blog/images/fake-shell-with-python-requests/postlogin.png)
+![Login POST request](images/fake-shell-with-python-requests/postlogin.png)
 
 As can be seen in the captured request, three parameters
 are needed: email, password and Login. These were then
@@ -135,7 +135,7 @@ The session is now authenticated and we are logged in as
 the bla account. I've demonstrated this in the interactive
 python shell here:
 
-![Interactive Login](/static/blog/images/fake-shell-with-python-requests/interactivelogin.png)
+![Interactive Login](images/fake-shell-with-python-requests/interactivelogin.png)
 
 The next challenge is sending a 
 multipart/form-data request where the file contents is
@@ -180,7 +180,7 @@ To demonstrate I used the python shell with the previously
 authenticated session object to post a payload
 that will cat the hostname.
 
-![Interactive post and execute](/static/blog/images/fake-shell-with-python-requests/interactivecmd.png)
+![Interactive post and execute](images/fake-shell-with-python-requests/interactivecmd.png)
 
 All of this can be put into a while loop that queries
 the user for a command and prints the result.
@@ -207,7 +207,7 @@ enter commands and see the output immediately! There
 did seem to be a slight issue though. Only one line
 of output from the command was being returned.
 
-![Only one line of output](/static/blog/images/fake-shell-with-python-requests/oneline.png)
+![Only one line of output](images/fake-shell-with-python-requests/oneline.png)
 
 To fix this, I changed the payload so that the
 command entered was being piped into the "head" command.
@@ -237,7 +237,7 @@ had reached the end of the output.
 Now we have a fully fledged shell where we can enter
 commands and see the output in full!
 
-![Shell in use](/static/blog/images/fake-shell-with-python-requests/shellinuse.png)
+![Shell in use](images/fake-shell-with-python-requests/shellinuse.png)
 
 ## Adapting the Shell
 
@@ -276,7 +276,7 @@ but just with the filter being applied.
 And now we have a fully functioning shell using
 the second vulnerability.
 
-![Second shell in use](/static/blog/images/fake-shell-with-python-requests/shell2.png)
+![Second shell in use](images/fake-shell-with-python-requests/shell2.png)
 
 Interestingly since this code was being run from
 the LFI vulnerable file, the code executed from 
